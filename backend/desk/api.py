@@ -78,26 +78,17 @@ def login(request: HttpRequest, body: LoginIn):
 
 @api.get("/submissions", response=list[SubmissionOut], auth=bearer_auth)
 def list_submissions(request: HttpRequest):
-    from desk.h03_extra_trap import apply_blank
     rows = OffsetSubmission.objects.all()[:200]
-    out = []
-    for r in rows:
-        item = _to_out(r)
-        apply_blank(item, "list")
-        out.append(item)
-    return out
+    return [_to_out(r) for r in rows]
 
 
 @api.get("/submissions/{submission_id}", response=SubmissionOut, auth=bearer_auth)
 def get_submission(request: HttpRequest, submission_id: int):
-    from desk.h03_extra_trap import apply_blank
     try:
         row = OffsetSubmission.objects.get(pk=submission_id)
     except OffsetSubmission.DoesNotExist:
         raise HttpError(404, "刀补记录不存在")
-    item = _to_out(row)
-    apply_blank(item, "detail")
-    return item
+    return _to_out(row)
 
 
 @api.post("/submissions", response=SubmissionOut, auth=bearer_auth)
@@ -114,7 +105,4 @@ def create_submission(request: HttpRequest, body: SubmissionIn):
         submitted_by=user,
         status=OffsetSubmission.Status.PENDING,
     )
-    from desk.h03_extra_trap import apply_blank
-    item = _to_out(row)
-    apply_blank(item, "create")
-    return item
+    return _to_out(row)
